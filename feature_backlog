@@ -1,2 +1,0 @@
-* A keyboard that can be folded in and out from the bottom. 
-    * Uses a superclass where signalling logic resides. For numpad etc. 
