@@ -9,6 +9,7 @@
 #include <QFile>
 #include <QDir>
 #include <QDebug>
+#include <QDateTime>
 
 class DatabaseHolder : public QObject
 {
@@ -17,16 +18,19 @@ public:
     explicit DatabaseHolder(QObject *parent = 0);
     ~DatabaseHolder(){this->mDatabase.close();}
 
-    void setupDatabase(QString dbPath);
-
     QSqlDatabase& connection(){return this->mDatabase;}
 
+    int currentUser(){return 0;}  //No users yet.
+
 private:
+    void setupDatabase(QString dbPath);
+
     QSqlDatabase mDatabase;
 
 signals:
 
 public slots:
+    void log(QString logEntry);
 
 };
 

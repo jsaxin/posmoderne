@@ -48,6 +48,7 @@ void DatabaseHolder::setupDatabase(QString dbPath)
                      "CommodityNr integer primary key autoincrement, \n"
                      "Name text, \n"
                      "Description text, \n"
+                     "VAT real, \n"
                      "Price real, \n"
                      "Style text \n"
                      ");\n");
@@ -56,10 +57,38 @@ void DatabaseHolder::setupDatabase(QString dbPath)
                      "MenuItemNr integer primary key autoincrement,\n"
                      "MenuNr integer, \n"
                      "MenuCategoryNr integer,\n"
-                     "CommodityNr integer,\n"
-                     "foreign key(MenuNr) references Menu(MenuNr),\n"
-                     "foreign key(MenuCategoryNr) references MenuCategory(MenuCategoryNr),\n"
-                     "foreign key(CommodityNr) references Commodity(CommodityNr)\n"
+                     "CommodityNr integer\n"
+                     ");\n");
+    queryList.append("create table if not exists \n"
+                     "Tab (\n"
+                     "TabNr integer primary key autoincrement,\n"
+                     "UserNr integer, \n"
+                     "Opened integer, \n"
+                     "Closed integer\n"
+                     ");\n");
+    queryList.append("create table if not exists \n"
+                     "User (\n"
+                     "UserNr integer primary key autoincrement,\n"
+                     "PswHash integer, \n"
+                     "PswSalt integer\n"
+                     ");\n");
+    queryList.append("create table if not exists \n"
+                     "Pitch (\n"
+                     "PitchNr integer primary key autoincrement,\n"
+                     "CommodityNr integer, \n"
+                     "TabNr integer, \n"
+                     "Time integer, \n"
+                     "Name text, \n"
+                     "Description text, \n"
+                     "VAT real, \n"
+                     "Price real \n"
+                     ");\n");
+    queryList.append("create table if not exists \n"
+                     "Log (\n"
+                     "LogNr integer primary key autoincrement,\n"
+                     "UserNr integer, \n"
+                     "Time integer, \n"
+                     "Entry text \n"
                      ");\n");
 
     for (int i = 0; i < queryList.size(); i++)
@@ -68,4 +97,18 @@ void DatabaseHolder::setupDatabase(QString dbPath)
         if ( !query.exec() )
             qDebug() << "Error creating table " << i << ": " << query.lastError();
     }
+}
+
+
+void DatabaseHolder::log(QString logEntry)
+{
+    QSqlQuery query(this->mDatabase);
+
+    query.prepare("insert into Log(UserNr, Time, Entry) \n"
+                  "values(:usernr, :time, :entry);");
+    query.bindValue(":usernr", this->currentUser());
+    query.bindValue(":time", QDateTime::currentDateTime().toTime_t());
+    query.bindValue(":entry", logEntry);
+
+    query.exec();
 }

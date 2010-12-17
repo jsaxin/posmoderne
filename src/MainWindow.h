@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "db/DatabaseHolder.h"
 
 namespace Ui {
     class MainWindow;
@@ -18,6 +19,7 @@ protected:
 
 private:
     Ui::MainWindow *ui;
+    DatabaseHolder *mDbHolder;
 };
 
 #endif // MAINWINDOW_H
