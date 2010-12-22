@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("posmoderne");
 
     MainWindow w;
-    w.show();
+    w.showFullScreen();
+
     return a.exec();
 }

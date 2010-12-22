@@ -15,17 +15,21 @@ class DatabaseHolder : public QObject
 {
 Q_OBJECT
 public:
-    explicit DatabaseHolder(QObject *parent = 0);
-    ~DatabaseHolder(){this->mDatabase.close();}
+    enum DB_TYPE{MENU_DB,SALES_DB};
 
-    QSqlDatabase& connection(){return this->mDatabase;}
+    explicit DatabaseHolder(QObject *parent = 0);
+    ~DatabaseHolder();
+
+    QSqlDatabase& menuDatabase(){return this->m_MenuDatabase;}
+    QSqlDatabase& salesDatabase(){return this->m_SalesDatabase;}
 
     int currentUser(){return 0;}  //No users yet.
 
 private:
-    void setupDatabase(QString dbPath);
+    void initDatabase(QString dbPath, DB_TYPE type);
 
-    QSqlDatabase mDatabase;
+    QSqlDatabase m_MenuDatabase;
+    QSqlDatabase m_SalesDatabase;
 
 signals:
 
