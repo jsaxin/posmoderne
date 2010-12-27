@@ -14,10 +14,18 @@ TEMPLATE = app
 SOURCES += src/main.cpp \
     src/MainWindow.cpp \
     src/db/DatabaseHolder.cpp \
-    src/db/MenuModel.cpp \
-    src/db/MenuHierarchicalProxyModel.cpp
+    src/db/menu/MenuModel.cpp \
+    src/db/menu/MenuPivotModel.cpp \
+    src/db/menu/Menu.cpp \
+    src/db/menu/MenuCategory.cpp \
+    src/db/menu/MenuItem.cpp \
+    src/db/menu/MenuTreeModel.cpp
 HEADERS += src/MainWindow.h \
     src/db/DatabaseHolder.h \
-    src/db/MenuModel.h \
-    src/db/MenuHierarchicalProxyModel.h
+    src/db/menu/MenuModel.h \
+    src/db/menu/MenuPivotModel.h \
+    src/db/menu/Menu.h \
+    src/db/menu/MenuCategory.h \
+    src/db/menu/MenuItem.h \
+    src/db/menu/MenuTreeModel.h
 FORMS += ui/MainWindow.ui

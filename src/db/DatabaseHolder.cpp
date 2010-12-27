@@ -7,18 +7,22 @@ DatabaseHolder::DatabaseHolder(QObject *parent) :
 
     QString menu_db_path = settings.value( "menu_db_path", QDir::homePath() + "/.posmoderne_menu.sql" ).toString();
     QString sales_db_path = settings.value( "sales_db_path", QDir::homePath() + "/.posmoderne_sales.sql" ).toString();
+    QString app_db_path = settings.value( "app_db_path", QDir::homePath() + "/.posmoderne_app.sql" ).toString();
 
     this->initDatabase(menu_db_path, MENU_DB);
     this->initDatabase(sales_db_path, SALES_DB);
-    
+    this->initDatabase(app_db_path, APP_DB);
+
     settings.setValue("menu_db_path",menu_db_path);
     settings.setValue("sales_db_path",sales_db_path);
+    settings.setValue("app_db_path",app_db_path);
 }
 
 DatabaseHolder::~DatabaseHolder()
 {
     this->m_MenuDatabase.close();
     this->m_SalesDatabase.close();
+    this->m_AppDatabase.close();
 }
 
 
@@ -28,6 +32,8 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
     QSqlDatabase &db = this->m_MenuDatabase;
     if ( type == SALES_DB )
         db = this->m_SalesDatabase;
+    if ( type == APP_DB )
+        db = this->m_AppDatabase;
 
     //Setup connection
     db = QSqlDatabase::addDatabase("QSQLITE",dbPath);
@@ -37,7 +43,7 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
         return;
 
     if ( !db.open() )
-        qDebug() << db.lastError();
+        qDebug() << "DatabaseHolder::initDatabase: Failed to open database: "<< db.lastError();
 
     QSqlQuery query(db);
     QStringList queryList;
@@ -68,10 +74,11 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
                          ");\n");
         queryList.append("create table if not exists \n"
                          "MenuItem (\n"
-                         "MenuItemNr integer primary key autoincrement,\n"
+                         "MenuItemNr integer primary key autoincrement, \n"
                          "MenuNr integer, \n"
-                         "MenuCategoryNr integer,\n"
-                         "CommodityNr integer\n"
+                         "MenuCategoryNr integer, \n"
+                         "CommodityNr integer, \n"
+                         "Weight integer \n"
                          ");\n");
     }
 
@@ -85,12 +92,6 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
                          "Closed integer\n"
                          ");\n");
         queryList.append("create table if not exists \n"
-                         "User (\n"
-                         "UserNr integer primary key autoincrement,\n"
-                         "PswHash integer, \n"
-                         "PswSalt integer\n"
-                         ");\n");
-        queryList.append("create table if not exists \n"
                          "Pitch (\n"
                          "PitchNr integer primary key autoincrement,\n"
                          "CommodityNr integer, \n"
@@ -101,6 +102,16 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
                          "VAT real, \n"
                          "Price real \n"
                          ");\n");
+    }
+
+    if (type == APP_DB)
+    {
+        queryList.append("create table if not exists \n"
+                         "User (\n"
+                         "UserNr integer primary key autoincrement,\n"
+                         "PswHash integer, \n"
+                         "PswSalt integer\n"
+                         ");\n");
         queryList.append("create table if not exists \n"
                          "Log (\n"
                          "LogNr integer primary key autoincrement,\n"
@@ -110,7 +121,7 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
                          ");\n");
     }
 
-    for (int i = 0; i < queryList.size(); i++)
+    for (int i = 0; i < queryList.size(); ++i)
     {
         query.prepare(queryList[i]);
         if ( !query.exec() )
@@ -121,7 +132,7 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
 
 void DatabaseHolder::log(QString logEntry)
 {
-    QSqlQuery query(this->m_SalesDatabase);
+    QSqlQuery query(this->m_AppDatabase);
 
     query.prepare("insert into Log(UserNr, Time, Entry) \n"
                   "values(:usernr, :time, :entry);");
