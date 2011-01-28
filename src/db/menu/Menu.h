@@ -2,23 +2,22 @@
 #define MENU_H
 
 #include <QMap>
-#include <QObject>
 
 #include "MenuCategory.h"
 
-class Menu : public QObject
+class Menu
 {
-Q_OBJECT
 public:
-    explicit Menu(QObject *parent = 0);
+    explicit Menu();
+
+    MenuCategory operator[](int category) { return this->m_Categories.value(category); }
 
 private:
-    QMap<int, MenuCategory> m_categories;
-
-signals:
-
-public slots:
-
+    int m_MenuNr;
+    int m_Weight;
+    QString m_Name;
+    QString m_Style;
+    QMap<int, MenuCategory> m_Categories;
 };
 
 #endif // MENU_H

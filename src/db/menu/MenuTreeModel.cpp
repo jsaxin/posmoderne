@@ -12,7 +12,7 @@ QStringList MenuTreeModel::menues()
 {
     QStringList payload;
     QSqlQuery query(this->m_Db);
-    query.prepare("select M.Name from Menu M order by M.MenuNr");
+    query.prepare("select M.Name from Menu M order by M.Weight");
 
     if (!query.exec())
         qDebug() << "MenuTreeModel::menues failure: " << query.lastError();
@@ -30,7 +30,7 @@ QStringList MenuTreeModel::categories(int menu)
 
     QStringList payload;
     QSqlQuery query(this->m_Db);
-    query.prepare("select C.Name from Menu M, MenuCategory C where C.MenuNr=:mNr order by C.MenuCategoryNr");
+    query.prepare("select C.Name from Menu M, Category C where C.MenuNr=:mNr order by C.Weight");
     query.bindValue(":mNr",menu);
 
     if (!query.exec())
@@ -49,7 +49,7 @@ QStringList MenuTreeModel::menuItems(int category, int menu)
 
     QStringList payload;
     QSqlQuery query(this->m_Db);
-    query.prepare("select MI.Name from Menu M, MenuCategory C, MenuItem MI where C.MenuCategoryNr=:cNr and M.MenuNr=:mNr order by MI.MenuItemNr");
+    query.prepare("select MI.Name from Menu M, Category C, MenuItem MI where C.CategoryNr=:cNr and M.MenuNr=:mNr order by MI.Weight");
     query.bindValue(":cNr", category);
     query.bindValue(":mNr",menu);
 

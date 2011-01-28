@@ -5,14 +5,17 @@ DatabaseHolder::DatabaseHolder(QObject *parent) :
 {
     QSettings settings;
 
-    QString menu_db_path = settings.value( "menu_db_path", QDir::homePath() + "/.posmoderne_menu.sql" ).toString();
-    QString sales_db_path = settings.value( "sales_db_path", QDir::homePath() + "/.posmoderne_sales.sql" ).toString();
-    QString app_db_path = settings.value( "app_db_path", QDir::homePath() + "/.posmoderne_app.sql" ).toString();
+    //Get database paths or use these defaults.
+    QString menu_db_path = settings.value( "menu_db_path", QDir::homePath() + "/.posmoderne_menu.sqlite" ).toString();
+    QString sales_db_path = settings.value( "sales_db_path", QDir::homePath() + "/.posmoderne_sales.sqlite" ).toString();
+    QString app_db_path = settings.value( "app_db_path", QDir::homePath() + "/.posmoderne_app.sqlite" ).toString();
 
+    //Run init on each of them.
     this->initDatabase(menu_db_path, MENU_DB);
     this->initDatabase(sales_db_path, SALES_DB);
     this->initDatabase(app_db_path, APP_DB);
 
+    //Store settings again.
     settings.setValue("menu_db_path",menu_db_path);
     settings.setValue("sales_db_path",sales_db_path);
     settings.setValue("app_db_path",app_db_path);
@@ -20,6 +23,7 @@ DatabaseHolder::DatabaseHolder(QObject *parent) :
 
 DatabaseHolder::~DatabaseHolder()
 {
+    //Close all database connections.
     this->m_MenuDatabase.close();
     this->m_SalesDatabase.close();
     this->m_AppDatabase.close();
@@ -28,7 +32,7 @@ DatabaseHolder::~DatabaseHolder()
 
 void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
 {
-    //Make db reference the correct connection. Menu is used as default since references must be initialised.
+    //Make db reference the correct connection. Menu is used as default since references must be allocated initialised.
     QSqlDatabase &db = this->m_MenuDatabase;
     if ( type == SALES_DB )
         db = this->m_SalesDatabase;
@@ -39,15 +43,17 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
     db = QSqlDatabase::addDatabase("QSQLITE",dbPath);
     db.setDatabaseName(dbPath);
 
+    //If it's there and can be opened, we're done.
     if (QFile(dbPath).exists() && db.open())
         return;
 
+    //If it cannot be opened, we have a problem. Fail loudly and somewhat informatively.
     if ( !db.open() )
-        qDebug() << "DatabaseHolder::initDatabase: Failed to open database: "<< db.lastError();
+        qDebug() << "DatabaseHolder::initDatabase: Failed to open database: " << dbPath << db.lastError();
 
-    QSqlQuery query(db);
     QStringList queryList;
 
+    //Append all queries necessary for table creation.
     if (type == MENU_DB)
     {
 
@@ -55,30 +61,27 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
                          "Menu (\n"
                          "MenuNr integer primary key autoincrement, \n"
                          "Name text, \n"
+                         "Weight integer, \n"
                          "Style text \n"
                          ");\n");
         queryList.append("create table if not exists \n"
-                         "MenuCategory (\n"
-                         "MenuCategoryNr integer primary key autoincrement, \n"
+                         "Category (\n"
+                         "CategoryNr integer primary key autoincrement, \n"
+                         "MenuNr integer, \n"
                          "Name text, \n"
-                         "Style text \n"
-                         ");\n");
-        queryList.append("create table if not exists \n"
-                         "Commodity (\n"
-                         "CommodityNr integer primary key autoincrement, \n"
-                         "Name text, \n"
-                         "Description text, \n"
-                         "VAT real, \n"
-                         "Price real, \n"
+                         "Weight integer, \n"
                          "Style text \n"
                          ");\n");
         queryList.append("create table if not exists \n"
                          "MenuItem (\n"
                          "MenuItemNr integer primary key autoincrement, \n"
-                         "MenuNr integer, \n"
-                         "MenuCategoryNr integer, \n"
-                         "CommodityNr integer, \n"
-                         "Weight integer \n"
+                         "CategoryNr integer, \n"
+                         "Name text, \n"
+                         "Description text, \n"
+                         "VAT real, \n"
+                         "Price real, \n"
+                         "Weight integer, \n"
+                         "Style text \n"
                          ");\n");
     }
 
@@ -94,7 +97,7 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
         queryList.append("create table if not exists \n"
                          "Pitch (\n"
                          "PitchNr integer primary key autoincrement,\n"
-                         "CommodityNr integer, \n"
+                         "MenuItemNr integer, \n"
                          "TabNr integer, \n"
                          "Time integer, \n"
                          "Name text, \n"
@@ -121,6 +124,9 @@ void DatabaseHolder::initDatabase(QString dbPath, DB_TYPE type)
                          ");\n");
     }
 
+    QSqlQuery query(db);
+
+    //Execute all queries.
     for (int i = 0; i < queryList.size(); ++i)
     {
         query.prepare(queryList[i]);

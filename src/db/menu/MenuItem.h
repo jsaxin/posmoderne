@@ -1,13 +1,12 @@
 #ifndef MENUITEM_H
 #define MENUITEM_H
 
-#include <QObject>
+#include <QString>
 
-class MenuItem : public QObject
+class MenuItem
 {
-Q_OBJECT
 public:
-    explicit MenuItem(QObject *parent = 0);
+    explicit MenuItem();
 
     QString name;
     QString description;
@@ -15,11 +14,6 @@ public:
     float price;
     int weight;
     int style;
-
-signals:
-
-public slots:
-
 };
 
 #endif // MENUITEM_H
